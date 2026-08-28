@@ -20,18 +20,23 @@ def run_matrix(seeds: list[int], task_count: int = 100) -> dict:
     for topology in (3, 4):
         for seed in seeds:
             for condition in CONDITIONS:
-                # Topology is encoded in the condition namespace to ensure
-                # independent deterministic solver streams.
                 label = f"clover-{topology}:{condition}"
                 result = run_harness(seed, label, task_count, STRENGTH[condition])
-                rows.append({"topology": topology, "condition": condition, "seed": seed, **asdict(result)})
+                rows.append({"topology": topology, "condition": condition, "seed": seed, "successes": result.successes, "task_count": result.task_count, "total_cost": result.total_cost})
     return {"status": "synthetic-apparatus-only", "rows": rows}
 
 
 def compare(matrix: dict, topology: int, treatment: str, baseline: str = "C0_uniform") -> dict:
     selected = [r for r in matrix["rows"] if r["topology"] == topology]
-    by_seed = {r["seed"]: r for r in selected}
-    deltas = [by_seed[s][treatment]["successes"] / by_seed[s][treatment]["task_count"] - by_seed[s][baseline]["successes"] / by_seed[s][baseline]["task_count"] for s in by_seed]
+    by_condition = {}
+    for row in selected:
+        by_condition.setdefault(row["condition"], {})[row["seed"]] = row
+    seeds = sorted(set(by_condition.get(treatment, {})) & set(by_condition.get(baseline, {})))
+    deltas = [
+        by_condition[treatment][s]["successes"] / by_condition[treatment][s]["task_count"]
+        - by_condition[baseline][s]["successes"] / by_condition[baseline][s]["task_count"]
+        for s in seeds
+    ]
     estimate = paired_bootstrap(deltas)
     return {"topology": topology, "treatment": treatment, "baseline": baseline, "n": len(deltas), "deltas": deltas, "analysis": asdict(estimate)}
 
