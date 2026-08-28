@@ -40,18 +40,25 @@ The project-defined Platinum Mean must not be conflated with the unrelated plast
 
 ## Scientific status
 
-**Phase:** deterministic apparatus validation
+**Phase:** deterministic apparatus + synthetic harness validation
 
-**Empirical N:** 0
+**Empirical N:** 0 for external/AI efficacy claims
 
 **Claim status:** no efficacy claim established
 
-The current C3 condition uses an explicit integer surrogate ladder `[1, 2, 3, 5]` rather than claiming that irrational ratios can be represented exactly by integer periods. A phase-accumulator scheduler is the next layer for preserving average irrational frequencies without discretization aliasing.
+The integer scheduler remains the simple baseline. The phase-accumulator scheduler preserves non-integer/irrational average frequencies without integer-period surrogates. The provider-neutral seeded harness, paired-seed runner, and frozen percentile-bootstrap analysis are available for apparatus validation.
+
+## Controlled pilot configuration
+
+`configs/pilot_matrix.json` defines the initial 3/4-leaf × C0–C3 matrix, 50 paired seeds, 100 tasks per seed, 10,000 bootstrap resamples, and deterministic analysis seed `20260828`.
+
+Synthetic harness results must not be presented as evidence of real-world AI efficacy. External-model experiments require an explicit pre-registration/authorization gate after apparatus validation.
 
 See:
 
 - `docs/MODEL.md` — executable architecture model
 - `docs/EXPERIMENT.md` — conceptual experiment specification
 - `docs/EXPERIMENT_PLAN.md` — current experimental plan
+- `docs/PHASE_SCHEDULING.md` — phase-preserving scheduler
 - `docs/ROADMAP.md` — implementation roadmap
-- `examples/run_reference.py` — deterministic matrix example
+- `configs/pilot_matrix.json` — controlled pilot configuration
