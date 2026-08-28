@@ -1,0 +1,29 @@
+{
+  "name": "MORSE initial controlled synthetic pilot",
+  "status": "apparatus-validation-only; not authorized for AI efficacy claims",
+  "topologies": [3, 4],
+  "conditions": ["C0_uniform", "C1_binary", "C2_platinum", "C3_multi_ratio"],
+  "paired_seed_count": 50,
+  "tasks_per_seed": 100,
+  "analysis": {
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 20260828,
+    "alpha": 0.05,
+    "ci": "percentile two-sided 95%",
+    "directional_support": "positive estimate and CI entirely above zero"
+  },
+  "ratio_definitions": {
+    "sqrt2": 1.4142135623730951,
+    "golden": 1.618033988749895,
+    "platinum_mean": 1.774732256170344,
+    "silver": 2.414213562373095,
+    "binary": 2.0
+  },
+  "guardrails": [
+    "Synthetic results do not establish real-world AI efficacy.",
+    "Freeze analysis before external-model experiments.",
+    "Keep condition labels and seed assignment immutable after authorization.",
+    "Report computational cost alongside quality outcomes.",
+    "Preserve null and negative results."
+  ]
+}
