@@ -40,18 +40,30 @@ The project-defined Platinum Mean must not be conflated with the unrelated plast
 
 ## Scientific status
 
-**Phase:** deterministic apparatus validation
+**Phase:** apparatus validation / synthetic harness preparation
 
-**Empirical N:** 0
+**Empirical N:** 0 for AI efficacy claims
 
 **Claim status:** no efficacy claim established
 
-The current C3 condition uses an explicit integer surrogate ladder `[1, 2, 3, 5]` rather than claiming that irrational ratios can be represented exactly by integer periods. A phase-accumulator scheduler is the next layer for preserving average irrational frequencies without discretization aliasing.
+The integer scheduler remains a simple reproducible baseline. The phase-accumulator scheduler preserves non-integer/irrational average frequencies without integer-period surrogates. A provider-neutral seeded harness and paired-condition analysis layer support controlled synthetic apparatus experiments.
 
-See:
+Synthetic results must not be presented as real-world AI efficacy. External-model experiments require a frozen protocol and explicit authorization gate.
+
+## Evidence model
+
+MORSE separates conceptual design, formal specification, implementation, deterministic verification, fault testing, synthetic comparative evidence, controlled AI evidence, and independent replication. See `docs/EVIDENCE_MODEL.md`.
+
+Prior orchestration research may inform MORSE's methods and hypotheses but does not constitute MORSE evidence. See `docs/ARCHITECTURE_TRANSFER.md`.
+
+## References
 
 - `docs/MODEL.md` — executable architecture model
 - `docs/EXPERIMENT.md` — conceptual experiment specification
 - `docs/EXPERIMENT_PLAN.md` — current experimental plan
+- `docs/PHASE_SCHEDULING.md` — phase-preserving scheduler
+- `docs/EVIDENCE_MODEL.md` — evidence ladder and provenance requirements
+- `docs/ARCHITECTURE_TRANSFER.md` — research transfer boundary
 - `docs/ROADMAP.md` — implementation roadmap
+- `configs/pilot_matrix.json` — controlled pilot configuration
 - `examples/run_reference.py` — deterministic matrix example
