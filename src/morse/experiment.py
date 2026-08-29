@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
-import json
 
 from .phase import PhaseLoopSpec, PhaseScheduler, frequency_for_ratio
 from .ratios import PLATINUM, SILVER, SQRT2, rounded_periods
@@ -87,11 +86,13 @@ def make_tasks(seed: int, count: int) -> tuple[Task, ...]:
 
 
 def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, leaf_count: int) -> list[Observation]:
-    regime_name = {"C0": UNIFORM, "C1": BINARY, "C2": PLATINUM_REGIME, "C3": MULTI_RATIO}[condition]
-    scheduler = make_phase_scheduler(leaf_count, regime_name)
+    regime_name = {"C0": UNIFORM, "C1": BINARY, "C2": PLATINUM_REGIME, "C3": MULTI_RATIO}.get(condition)
+    if regime_name is None:
+        raise ValueError(f"unknown condition: {condition}")
     observations: list[Observation] = []
     for task in tasks:
         seed = derive_seed(global_seed, task.task_id, condition)
+        scheduler = make_phase_scheduler(leaf_count, regime_name)
         cycles = 32 + task.difficulty
         trace = scheduler.run(cycles)
         activations = [names for _, names in trace]
