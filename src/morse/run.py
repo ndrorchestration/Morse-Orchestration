@@ -19,23 +19,29 @@ def validate_observations(rows: list[Observation], task_count: int, repetitions:
         raise ValueError(f"observation count {len(rows)} != expected {expected}")
     expected_per_condition = task_count * repetitions
     counts: dict[str, int] = {}
-    task_ids: set[tuple[str, str]] = set()
+    identities: set[tuple[int, str, str]] = set()
     for row in rows:
         parts = row.condition.split("-", 1)
         if len(parts) != 2 or parts[0] not in {"L3", "L4"} or parts[1] not in EXPECTED_REGIMES:
             raise ValueError(f"invalid condition: {row.condition}")
         if not row.task_id.startswith("T"):
             raise ValueError("invalid task identifier")
-        key = (row.condition, row.task_id)
-        if key in task_ids:
+        if row.repetition < 0 or row.repetition >= repetitions:
+            raise ValueError(f"invalid repetition: {row.repetition}")
+        key = (row.repetition, row.task_id, row.condition)
+        if key in identities:
             raise ValueError(f"duplicate observation identity: {key}")
-        task_ids.add(key)
+        identities.add(key)
         counts[row.condition] = counts.get(row.condition, 0) + 1
     expected_conditions = {f"L{leaf}-{regime}" for leaf in EXPECTED_LEAVES for regime in EXPECTED_REGIMES}
     if set(counts) != expected_conditions:
         raise ValueError("condition matrix is incomplete")
     if any(count != expected_per_condition for count in counts.values()):
         raise ValueError("condition cardinality mismatch")
+    for condition in expected_conditions:
+        observed_reps = {rep for rep, _, cond in identities if cond == condition}
+        if observed_reps != set(range(repetitions)):
+            raise ValueError(f"repetition coverage mismatch for {condition}")
 
 
 def execute_synthetic(*, commit: str, task_seed: int, task_count: int = 100, repetitions: int = 50) -> dict[str, Any]:
