@@ -36,6 +36,10 @@ class TraceMetrics:
 
 
 def summarize(trace: SimulationTrace, cycles: int) -> TraceMetrics:
+    if cycles < 0:
+        raise ValueError("cycles must be >= 0")
+    if len(trace.snapshots) != cycles:
+        raise ValueError("cycles must equal the number of trace snapshots")
     counts = Counter(a.loop for a in trace.activations)
     events = sum(a.reason.value == "event" for a in trace.activations)
     periodic = sum(a.reason.value == "periodic" for a in trace.activations)
