@@ -30,6 +30,7 @@ class Task:
 
 @dataclass(frozen=True)
 class Observation:
+    repetition: int
     task_id: str
     condition: str
     seed: int
@@ -85,7 +86,7 @@ def make_tasks(seed: int, count: int) -> tuple[Task, ...]:
     return tuple(Task(f"T{i:04d}", 1 + hashlib.sha256(f"task:{seed}:{i}".encode()).digest()[0] % 5, 1 + hashlib.sha256(f"task:{seed}:{i}".encode()).digest()[1] % 7) for i in range(count))
 
 
-def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, leaf_count: int) -> list[Observation]:
+def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, leaf_count: int, repetition: int) -> list[Observation]:
     regime_name = {"C0": UNIFORM, "C1": BINARY, "C2": PLATINUM_REGIME, "C3": MULTI_RATIO}.get(condition)
     if regime_name is None:
         raise ValueError(f"unknown condition: {condition}")
@@ -103,18 +104,18 @@ def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, lea
         capacity = coverage + min(3, coordination // max(1, cycles // 8)) + recovery
         success = capacity >= task.difficulty + 1
         cost = sum(len(names) for names in activations) + coordination + recovery
-        observations.append(Observation(task.task_id, f"L{leaf_count}-{condition}", seed, success, cost, coordination, recovery))
+        observations.append(Observation(repetition, task.task_id, f"L{leaf_count}-{condition}", seed, success, cost, coordination, recovery))
     return observations
 
 
 def paired_matrix(task_seed: int, task_count: int = 100, repetitions: int = 50) -> list[Observation]:
-    if repetitions < 1:
-        raise ValueError("repetitions must be >= 1")
+    if task_count < 1 or repetitions < 1:
+        raise ValueError("task_count and repetitions must be >= 1")
     tasks = make_tasks(task_seed, task_count)
     rows: list[Observation] = []
     for rep in range(repetitions):
         rep_seed = derive_seed(task_seed, f"rep-{rep}", "matrix")
         for leaves in (3, 4):
             for condition in ("C0", "C1", "C2", "C3"):
-                rows.extend(run_condition(tasks, condition, rep_seed, leaves))
+                rows.extend(run_condition(tasks, condition, rep_seed, leaves, rep))
     return rows
