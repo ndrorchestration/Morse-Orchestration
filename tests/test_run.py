@@ -1,6 +1,6 @@
 import pytest
 
-from morse.experiment import Observation, period_ratios, paired_matrix
+from morse.experiment import Observation, period_ratios, paired_matrix, run_condition
 from morse.ratios import PLATINUM, SILVER, SQRT2
 from morse.run import execute_synthetic, validate_observations
 
@@ -34,3 +34,9 @@ def test_matrix_is_deterministic():
     a = paired_matrix(20260828, task_count=2, repetitions=2)
     b = paired_matrix(20260828, task_count=2, repetitions=2)
     assert a == b
+
+
+def test_synthetic_condition_routes_active_loops_through_hub():
+    rows = run_condition(__import__("morse.experiment", fromlist=["make_tasks"]).make_tasks(3, 1), "C0", 11, 3, 0)
+    assert rows[0].coordination_events > 0
+    assert rows[0].cost > 0

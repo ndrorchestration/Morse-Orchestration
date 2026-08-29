@@ -93,13 +93,14 @@ def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, lea
     if regime_name is None:
         raise ValueError(f"unknown condition: {condition}")
     observations: list[Observation] = []
+    loop_names = tuple(f"L{i+1}" for i in range(leaf_count))
     for task in tasks:
         seed = derive_seed(global_seed, task.task_id, condition)
         scheduler = make_phase_scheduler(leaf_count, regime_name)
         cycles = 32 + task.difficulty
         scheduled = scheduler.run(cycles)
         trace = SimulationTrace()
-        hub = InterchangeHub(tuple(f"L{i+1}" for i in range(leaf_count)))
+        hub = InterchangeHub(loop_names)
         for cycle, names in scheduled:
             active = set(names)
             for name in names:
@@ -107,7 +108,7 @@ def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, lea
             trace.snapshots.append({"cycle": cycle, "active_loops": list(names)})
             hub.state.active_loops = active
             hub.reconcile(cycle, active, trace)
-            ordered = [name for name in hub.loops if name in active]
+            ordered = [name for name in loop_names if name in active]
             if len(ordered) > 1:
                 for source, target in zip(ordered, ordered[1:] + ordered[:1]):
                     hub.route(cycle, source, target, active, payload={"cycle": cycle}, trace=trace)
