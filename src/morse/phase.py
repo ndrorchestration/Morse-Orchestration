@@ -69,7 +69,15 @@ def frequency_for_ratio(period_ratio: float) -> float:
     return 1.0 / period_ratio
 
 
-# Compatibility wrappers retained for the original test/API vocabulary.
+def activation_count(period_ratio: float, cycles: int) -> int:
+    """Count activations over a deterministic finite run."""
+    if cycles < 0:
+        raise ValueError("cycles must be non-negative")
+    accumulator = PhaseAccumulator(frequency_for_ratio(period_ratio))
+    return sum(accumulator.tick() for _ in range(cycles))
+
+
+# Compatibility aliases retained for the original API vocabulary.
 PhaseClock = PhaseAccumulator
 
 
