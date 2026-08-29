@@ -14,7 +14,7 @@ This protocol defines the first executable mechanism-level experiment. It does n
 
 ## Controls
 
-Task identity is shared across conditions within a repetition. Condition seeds are derived deterministically from the global seed, task identity, and condition. Mutable state is not shared between conditions.
+Task identity is shared across conditions within a repetition. Each observation is uniquely identified by **repetition + task ID + condition**. Condition seeds are derived deterministically from the global seed, repetition seed, task identity, and condition. Mutable scheduler state is reset for every task/condition execution so one task cannot alter the next task's phase state.
 
 ## Validation gates
 
@@ -24,6 +24,7 @@ A run is invalid if:
 - any expected condition is absent
 - condition cardinalities differ
 - task identifiers are malformed
+- an observation identity is duplicated
 - manifest observation digest cannot be reproduced
 
 ## Output
