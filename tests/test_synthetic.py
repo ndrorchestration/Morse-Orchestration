@@ -3,19 +3,20 @@ from morse.synthetic import (
     PLATINUM_REGIME,
     UNIFORM,
     BINARY,
-    Task,
     derive_seed,
     paired_matrix,
     period_ratios,
     schedule_trace,
 )
+from morse.ratios import PLATINUM, SILVER, SQRT2
 
 
 def test_period_ratios_are_distinct_for_candidate_regimes():
     assert period_ratios(3, UNIFORM) == (1.0, 1.0, 1.0)
     assert period_ratios(3, BINARY) == (1.0, 2.0, 4.0)
-    assert period_ratios(3, PLATINUM_REGIME)[1] > 1.0
-    assert period_ratios(3, MULTI_RATIO) == (1.0, 2**0.5, period_ratios(3, PLATINUM_REGIME)[2])
+    assert period_ratios(3, PLATINUM_REGIME) == (1.0, PLATINUM, PLATINUM**2)
+    assert period_ratios(3, MULTI_RATIO) == (1.0, SQRT2, PLATINUM)
+    assert period_ratios(4, MULTI_RATIO) == (1.0, SQRT2, PLATINUM, SILVER)
 
 
 def test_phase_trace_is_deterministic():
