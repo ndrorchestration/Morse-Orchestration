@@ -12,17 +12,25 @@ EXPECTED_REGIMES = ("C0", "C1", "C2", "C3")
 
 
 def validate_observations(rows: list[Observation], task_count: int, repetitions: int) -> None:
+    if task_count < 1 or repetitions < 1:
+        raise ValueError("task_count and repetitions must be >= 1")
     expected = task_count * repetitions * len(EXPECTED_LEAVES) * len(EXPECTED_REGIMES)
     if len(rows) != expected:
         raise ValueError(f"observation count {len(rows)} != expected {expected}")
     expected_per_condition = task_count * repetitions
     counts: dict[str, int] = {}
+    task_ids: set[tuple[str, str]] = set()
     for row in rows:
-        counts[row.condition] = counts.get(row.condition, 0) + 1
+        parts = row.condition.split("-", 1)
+        if len(parts) != 2 or parts[0] not in {"L3", "L4"} or parts[1] not in EXPECTED_REGIMES:
+            raise ValueError(f"invalid condition: {row.condition}")
         if not row.task_id.startswith("T"):
             raise ValueError("invalid task identifier")
-        if row.condition[:1] != "L" or row.condition[2:] not in EXPECTED_REGIMES:
-            raise ValueError(f"invalid condition: {row.condition}")
+        key = (row.condition, row.task_id)
+        if key in task_ids:
+            raise ValueError(f"duplicate observation identity: {key}")
+        task_ids.add(key)
+        counts[row.condition] = counts.get(row.condition, 0) + 1
     expected_conditions = {f"L{leaf}-{regime}" for leaf in EXPECTED_LEAVES for regime in EXPECTED_REGIMES}
     if set(counts) != expected_conditions:
         raise ValueError("condition matrix is incomplete")
