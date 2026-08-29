@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 
+from .hub import InterchangeHub
+from .model import Activation, GateReason, SimulationTrace
 from .phase import PhaseLoopSpec, PhaseScheduler, frequency_for_ratio
 from .ratios import PLATINUM, SILVER, SQRT2, rounded_periods
 from .topology import Topology, clover_topology
@@ -95,15 +97,28 @@ def run_condition(tasks: tuple[Task, ...], condition: str, global_seed: int, lea
         seed = derive_seed(global_seed, task.task_id, condition)
         scheduler = make_phase_scheduler(leaf_count, regime_name)
         cycles = 32 + task.difficulty
-        trace = scheduler.run(cycles)
-        activations = [names for _, names in trace]
-        coordination = sum(len(names) > 1 for names in activations)
-        coverage = len({name for names in activations for name in names})
-        digest = hashlib.sha256(f"{seed}:{task.required_signal}:{coordination}:{coverage}".encode()).digest()
+        scheduled = scheduler.run(cycles)
+        trace = SimulationTrace()
+        hub = InterchangeHub(tuple(f"L{i+1}" for i in range(leaf_count)))
+        for cycle, names in scheduled:
+            active = set(names)
+            for name in names:
+                trace.activations.append(Activation(cycle, name, GateReason.PERIODIC, "phase-accumulator"))
+            trace.snapshots.append({"cycle": cycle, "active_loops": list(names)})
+            hub.state.active_loops = active
+            hub.reconcile(cycle, active, trace)
+            ordered = [name for name in hub.loops if name in active]
+            if len(ordered) > 1:
+                for source, target in zip(ordered, ordered[1:] + ordered[:1]):
+                    hub.route(cycle, source, target, active, payload={"cycle": cycle}, trace=trace)
+        coordination = sum(len(names) > 1 for _, names in scheduled)
+        coverage = len({name for _, names in scheduled for name in names})
+        routed = sum(event.accepted for event in trace.interchanges if event.action == "route")
+        digest = hashlib.sha256(f"{seed}:{task.required_signal}:{coordination}:{coverage}:{routed}".encode()).digest()
         recovery = 1 if digest[0] % 11 == 0 else 0
-        capacity = coverage + min(3, coordination // max(1, cycles // 8)) + recovery
+        capacity = coverage + min(3, routed // max(1, cycles // 8)) + recovery
         success = capacity >= task.difficulty + 1
-        cost = sum(len(names) for names in activations) + coordination + recovery
+        cost = len(trace.activations) + routed + recovery
         observations.append(Observation(repetition, task.task_id, f"L{leaf_count}-{condition}", seed, success, cost, coordination, recovery))
     return observations
 
