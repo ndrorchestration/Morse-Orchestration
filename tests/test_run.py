@@ -1,7 +1,7 @@
 import pytest
 
-from morse.run import execute_synthetic, validate_observations
 from morse.experiment import Observation
+from morse.run import execute_synthetic, validate_observations
 
 
 def test_execute_synthetic_cardinality_and_manifest():
@@ -12,6 +12,6 @@ def test_execute_synthetic_cardinality_and_manifest():
 
 
 def test_validate_rejects_incomplete_matrix():
-    row = Observation("T0000", "L3-C0", 1, True, 1, 1, 0)
+    row = Observation(0, "T0000", "L3-C0", 1, True, 1, 1, 0)
     with pytest.raises(ValueError, match="observation count"):
         validate_observations([row], task_count=1, repetitions=1)
