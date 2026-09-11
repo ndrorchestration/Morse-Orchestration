@@ -1,21 +1,42 @@
 name: tests
+
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install --upgrade pip
-      - run: python -m pip install -e '.[test]'
-      - run: pytest -q
-      - run: python examples/run_reference.py > /tmp/morse-reference.jsonl
-      - run: test -s /tmp/morse-reference.jsonl
+
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e '.[test]'
+
+      - name: Run test suite
+        run: python -m pytest -q
+
+      - name: Verify committed reference digest
+        run: sha256sum -c reference-matrix.sha256
+
+      - name: Run deterministic reference example
+        run: |
+          python examples/run_reference.py > /tmp/morse-reference.jsonl
+          test -s /tmp/morse-reference.jsonl
